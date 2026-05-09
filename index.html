@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LP Finance · Dashboard Gerencial — Astro Beer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Manrope:wght@300..800&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0B1E3F;
+    --navy-2:#142A52;
+    --cyan:#00BFD8;
+    --cyan-soft:#E6F9FC;
+    --bg:#F7F9FC;
+    --surface:#FFFFFF;
+    --border:#E2E8F0;
+    --border-soft:#EEF2F7;
+    --text:#0B1E3F;
+    --muted:#64748B;
+    --muted-2:#94A3B8;
+    --success:#047857;
+    --success-soft:#D1FAE5;
+    --danger:#B91C1C;
+    --danger-soft:#FEE2E2;
+    --warn:#B45309;
+    --warn-soft:#FEF3C7;
+    --shadow-sm:0 1px 2px rgba(11,30,63,.05);
+    --shadow:0 4px 16px rgba(11,30,63,.06);
+    --shadow-lg:0 12px 32px rgba(11,30,63,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Manrope',-apple-system,system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","cv11";
+  }
+  .display{font-family:'Fraunces',Georgia,serif;font-optical-sizing:auto;letter-spacing:-0.015em}
+  .tabular{font-variant-numeric:tabular-nums}
+
+  /* ============== HEADER ============== */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{
+    max-width:1280px;margin:0 auto;
+    padding:14px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+  .brand-logo{
+    width:36px;height:36px;border-radius:9px;
+    background:linear-gradient(135deg,var(--navy),var(--cyan));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 12px rgba(0,191,216,.25);
+  }
+  .brand-name{font-family:'Fraunces',serif;font-weight:600;font-size:18px;letter-spacing:-0.01em}
+  .brand-sub{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .topnav{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .navlink{
+    font-size:13px;font-weight:500;color:var(--muted);
+    padding:8px 12px;border-radius:8px;cursor:pointer;
+    transition:all .15s ease;text-decoration:none;
+  }
+  .navlink:hover{background:var(--bg);color:var(--text)}
+  .month-picker{
+    display:flex;gap:4px;padding:4px;border:1px solid var(--border);
+    border-radius:10px;background:var(--surface);
+  }
+  .month-btn{
+    border:none;background:transparent;cursor:pointer;
+    font-family:inherit;font-size:12px;font-weight:600;
+    padding:6px 10px;border-radius:7px;color:var(--muted);
+    transition:all .15s ease;
+  }
+  .month-btn:hover{color:var(--text)}
+  .month-btn.active{background:var(--navy);color:#fff}
+
+  /* ============== HERO ============== */
+  .hero{
+    max-width:1280px;margin:0 auto;
+    padding:32px 24px 12px;
+  }
+  .hero-row{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+  .hero h1{
+    font-family:'Fraunces',serif;font-weight:500;
+    font-size:clamp(28px,4vw,40px);line-height:1.1;
+    margin:0;letter-spacing:-0.02em;
+  }
+  .hero h1 em{font-style:italic;color:var(--cyan)}
+  .hero-meta{font-size:13px;color:var(--muted);margin-top:8px}
+  .hero-meta strong{color:var(--text);font-weight:600}
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--cyan-soft);color:#005C6B;
+    padding:5px 10px;border-radius:999px;
+    font-size:11px;font-weight:700;letter-spacing:.04em;
+  }
+  .badge.green{background:var(--success-soft);color:#065F46}
+  .badge.red{background:var(--danger-soft);color:#991B1B}
+  .badge.warn{background:var(--warn-soft);color:#854D0E}
+  .badge.gray{background:#F1F5F9;color:#475569}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
+
+  /* ============== SECTION ============== */
+  .section{max-width:1280px;margin:0 auto;padding:24px}
+  .section-head{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:16px;
+    margin-bottom:16px;flex-wrap:wrap;
+  }
+  .section-title{
+    font-family:'Fraunces',serif;font-size:22px;font-weight:500;
+    letter-spacing:-0.01em;margin:0;
+  }
+  .section-sub{font-size:13px;color:var(--muted);margin-top:4px;max-width:680px;line-height:1.5}
+  .eyebrow{
+    font-size:11px;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:6px;
+  }
+
+  /* ============== CARDS ============== */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:var(--shadow-sm);
+  }
+  .card-pad{padding:20px}
+  .card-pad-lg{padding:24px}
+
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:14px;
+  }
+  @media (max-width:980px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:520px){.kpi-grid{grid-template-columns:1fr}}
+
+  .kpi{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:14px;padding:18px;
+    transition:all .2s ease;position:relative;
+  }
+  .kpi:hover{border-color:#CBD5E1;box-shadow:var(--shadow)}
+  .kpi-label{
+    font-size:11px;font-weight:700;letter-spacing:.10em;
+    text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;gap:6px;
+  }
+  .kpi-info{
+    width:14px;height:14px;border-radius:50%;
+    background:var(--border-soft);color:var(--muted);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;cursor:help;
+    position:relative;
+  }
+  .kpi-info:hover{background:var(--cyan-soft);color:#005C6B}
+  .kpi-info[data-tip]:hover::after{
+    content:attr(data-tip);
+    position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+    background:var(--navy);color:#fff;padding:8px 12px;border-radius:8px;
+    font-size:11px;font-weight:500;letter-spacing:0;
+    width:240px;line-height:1.45;text-align:left;text-transform:none;
+    box-shadow:var(--shadow-lg);z-index:100;pointer-events:none;
+    white-space:normal;
+  }
+  .kpi-info[data-tip]:hover::before{
+    content:"";position:absolute;bottom:calc(100% + 2px);left:50%;
+    transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--navy);
+    z-index:100;
+  }
+  .kpi-value{
+    font-family:'Fraunces',serif;font-size:28px;font-weight:500;
+    margin-top:10px;line-height:1.1;letter-spacing:-0.02em;
+  }
+  .kpi-foot{
+    margin-top:8px;display:flex;align-items:center;gap:8px;
+    font-size:12px;color:var(--muted);
+  }
+  .delta{
+    display:inline-flex;align-items:center;gap:3px;
+    font-weight:700;font-size:12px;padding:2px 7px;border-radius:6px;
+  }
+  .delta.up{color:#065F46;background:var(--success-soft)}
+  .delta.down{color:#991B1B;background:var(--danger-soft)}
+  .delta.flat{color:#475569;background:#F1F5F9}
+
+  .kpi.accent::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--navy),var(--cyan));
+    border-radius:14px 14px 0 0;
+  }
+
+  /* ============== GRIDS ============== */
+  .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .grid-12{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  @media (max-width:980px){
+    .grid-2,.grid-3{grid-template-columns:1fr}
+    .grid-12{grid-template-columns:1fr;}
+    .grid-12 > *{grid-column:1/-1 !important}
+  }
+  .col-7{grid-column:span 7}
+  .col-5{grid-column:span 5}
+  .col-8{grid-column:span 8}
+  .col-4{grid-column:span 4}
+  .col-6{grid-column:span 6}
+
+  /* ============== TABLES ============== */
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th,.tbl td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--border-soft)}
+  .tbl th:first-child,.tbl td:first-child{text-align:left}
+  .tbl thead th{
+    font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;
+    color:var(--muted);background:#FAFBFD;border-bottom:1px solid var(--border);
+  }
+  .tbl tbody tr:hover{background:#FAFBFD}
+  .tbl .row-total{background:#F8FAFC;font-weight:700}
+  .tbl .row-total td{border-top:2px solid var(--navy);border-bottom:none}
+  .tbl .row-section td{
+    background:var(--cyan-soft);font-weight:700;color:var(--navy);
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  }
+  .tbl .indent{padding-left:24px;color:var(--muted)}
+  .tbl .indent-2{padding-left:36px;color:var(--muted-2);font-size:12px}
+  .pill-pos{color:var(--success);font-weight:700}
+  .pill-neg{color:var(--danger);font-weight:700}
+
+  /* ============== CHART CONTAINERS ============== */
+  .chart-wrap{position:relative;height:280px}
+  .chart-wrap.tall{height:340px}
+  .chart-wrap.short{height:200px}
+
+  /* ============== INSIGHTS ============== */
+  .insight{
+    display:flex;gap:12px;
+    padding:14px 16px;border-radius:12px;
+    background:var(--surface);border:1px solid var(--border);
+    margin-bottom:10px;
+  }
+  .insight-icon{
+    flex-shrink:0;width:32px;height:32px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px;
+  }
+  .insight-icon.ok{background:var(--success-soft);color:#065F46}
+  .insight-icon.warn{background:var(--warn-soft);color:#854D0E}
+  .insight-icon.alert{background:var(--danger-soft);color:#991B1B}
+  .insight-icon.info{background:var(--cyan-soft);color:#005C6B}
+  .insight-title{font-size:13px;font-weight:700;margin:0 0 4px;color:var(--text)}
+  .insight-body{font-size:13px;color:var(--muted);line-height:1.55;margin:0}
+  .insight-body strong{color:var(--text);font-weight:700}
+
+  /* ============== PARETO BARS ============== */
+  .pareto-row{
+    display:grid;grid-template-columns:160px 1fr 90px 70px;gap:10px;align-items:center;
+    padding:8px 0;border-bottom:1px solid var(--border-soft);
+  }
+  .pareto-row:last-child{border-bottom:none}
+  .pareto-label{font-size:13px;font-weight:600}
+  .pareto-bar{height:10px;background:var(--border-soft);border-radius:6px;overflow:hidden;position:relative}
+  .pareto-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--cyan));border-radius:6px}
+  .pareto-pct{font-size:12px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .pareto-val{font-size:11px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+
+  /* ============== BREAK-EVEN ============== */
+  .be-card{
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .be-stat{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-bottom:1px dashed var(--border)}
+  .be-stat:last-child{border-bottom:none}
+  .be-stat-label{font-size:12px;color:var(--muted);font-weight:600}
+  .be-stat-val{font-family:'Fraunces',serif;font-size:20px;font-weight:500}
+
+  /* ============== PLANS ============== */
+  .plans{
+    background:#F2F5FA;
+    color:var(--text);padding:80px 24px 90px;margin-top:60px;position:relative;
+    overflow:hidden;
+  }
+  .plans::before{
+    content:"";position:absolute;top:-200px;right:-200px;
+    width:500px;height:500px;border-radius:50%;
+    background:radial-gradient(circle,rgba(0,191,216,.08) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .plans::after{
+    content:"";position:absolute;bottom:-200px;left:-150px;
+    width:500px;height:500px;border-radius:50%;
+    background:radial-gradient(circle,rgba(11,30,63,.05) 0%,transparent 70%);
+    pointer-events:none;
+  }
+  .plans-inner{max-width:1280px;margin:0 auto;position:relative;z-index:1}
+  .plans-head{text-align:center;max-width:680px;margin:0 auto 48px}
+  .plans-eyebrow{
+    font-size:11px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--cyan);margin-bottom:14px;
+  }
+  .plans h2{
+    font-family:'Fraunces',serif;font-size:clamp(32px,5vw,46px);
+    font-weight:500;letter-spacing:-0.02em;line-height:1.05;margin:0 0 14px;
+    color:var(--navy);
+  }
+  .plans h2 em{font-style:italic;color:var(--cyan)}
+  .plans-sub{font-size:15px;color:var(--muted);line-height:1.6}
+
+  .plans-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch;
+    padding-top:14px;
+  }
+  @media (max-width:980px){.plans-grid{grid-template-columns:1fr;max-width:480px;margin:0 auto}}
+
+  .plan{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:18px;padding:32px 28px;
+    display:flex;flex-direction:column;gap:20px;
+    transition:all .25s ease;position:relative;
+    box-shadow:0 1px 3px rgba(11,30,63,.04);
+  }
+  .plan:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(11,30,63,.10);border-color:#CBD5E1}
+
+  .plan.featured{
+    background:linear-gradient(180deg,#0E2349 0%,#0B1E3F 100%);
+    border:1px solid var(--navy);
+    color:#fff;
+    box-shadow:0 20px 50px rgba(11,30,63,.25);
+    transform:translateY(-8px);
+  }
+  .plan.featured:hover{transform:translateY(-12px);box-shadow:0 28px 60px rgba(11,30,63,.30)}
+
+  .plan-tag{
+    position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+    background:var(--cyan);color:var(--navy);
+    font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+    padding:7px 16px;border-radius:999px;
+    box-shadow:0 4px 12px rgba(0,191,216,.35);
+    white-space:nowrap;
+  }
+
+  .plan-name{
+    font-family:'Fraunces',serif;font-size:26px;font-weight:500;
+    letter-spacing:-0.01em;color:var(--navy);
+  }
+  .plan.featured .plan-name{color:#fff}
+
+  .plan-desc{font-size:13px;color:var(--muted);line-height:1.55;min-height:64px}
+  .plan.featured .plan-desc{color:#B8C5DA}
+
+  .plan-price{
+    display:flex;align-items:baseline;gap:6px;
+    padding:16px 0;border-top:1px solid var(--border-soft);
+    border-bottom:1px solid var(--border-soft);
+  }
+  .plan.featured .plan-price{border-color:rgba(255,255,255,.12)}
+  .plan-price-amount{font-family:'Fraunces',serif;font-size:32px;font-weight:500;color:var(--navy)}
+  .plan.featured .plan-price-amount{color:var(--cyan)}
+  .plan-price-period{font-size:13px;color:var(--muted)}
+  .plan.featured .plan-price-period{color:#94A3B8}
+  .plan-price-soon{font-size:14px;color:var(--muted);font-style:italic;font-weight:600}
+  .plan.featured .plan-price-soon{color:#94A3B8}
+
+  .plan-feats{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:11px}
+  .plan-feats li{
+    font-size:13px;line-height:1.45;display:flex;gap:10px;align-items:flex-start;
+    color:#334155;
+  }
+  .plan.featured .plan-feats li{color:#D1DBE9}
+  .plan-feats li.off{color:#CBD5E1;text-decoration:line-through;text-decoration-thickness:1px}
+  .plan.featured .plan-feats li.off{color:#3F5778}
+  .plan-feats li svg{flex-shrink:0;margin-top:2px}
+
+  .plan-cta{
+    margin-top:auto;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:13px 16px;border-radius:10px;
+    font-family:inherit;font-size:14px;font-weight:700;
+    text-decoration:none;cursor:pointer;border:none;
+    transition:all .15s ease;
+  }
+  .plan-cta.primary{background:var(--cyan);color:var(--navy)}
+  .plan-cta.primary:hover{background:#33D2E6;transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,191,216,.35)}
+  .plan-cta.dark{background:var(--navy);color:#fff}
+  .plan-cta.dark:hover{background:#051330;transform:translateY(-1px);box-shadow:0 8px 20px rgba(11,30,63,.25)}
+
+  .footer{
+    text-align:center;padding:32px 24px;
+    color:var(--muted);font-size:12px;
+    border-top:1px solid var(--border);background:var(--surface);
+  }
+  .footer a{color:var(--navy);text-decoration:none;font-weight:600}
+
+  /* legend */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px}
+  .legend-dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:middle}
+
+  /* SCROLL */
+  html{scroll-behavior:smooth;scroll-padding-top:72px}
+
+  /* fade-in */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeUp .5s ease both}
+
+  /* responsiveness misc */
+  @media (max-width:640px){
+    .topbar-inner{padding:12px 14px;flex-direction:column;align-items:flex-start}
+    .topnav{display:none}
+    .month-picker{width:100%;overflow-x:auto}
+    .section{padding:16px}
+    .hero{padding:24px 16px 8px}
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ====== TOP BAR ====== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#" class="brand">
+      <div class="brand-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 5-5"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">LP Finance</div>
+        <div class="brand-sub">Planejamento Financeiro Inteligente</div>
+      </div>
+    </a>
+    <nav class="topnav">
+      <a class="navlink" href="#kpis">Visão Geral</a>
+      <a class="navlink" href="#dre">DRE</a>
+      <a class="navlink" href="#caixa">Caixa</a>
+      <a class="navlink" href="#produtos">Produtos</a>
+      <a class="navlink" href="#breakeven">Break-even</a>
+      <a class="navlink" href="#budget">Budget</a>
+      <a class="navlink" href="#insights">Insights</a>
+      <a class="navlink" href="#planos" style="color:var(--navy);font-weight:700">Planos</a>
+    </nav>
+    <div class="month-picker" id="monthPicker">
+      <!-- preenchido via JS -->
+    </div>
+  </div>
+</header>
+
+<!-- ====== HERO ====== -->
+<section class="hero fade-in">
+  <div class="eyebrow">Dashboard Gerencial · FP&amp;A</div>
+  <div class="hero-row">
+    <div>
+      <h1>Astro <em>Beer</em></h1>
+      <div class="hero-meta">
+        <strong>Período em análise:</strong> Novembro/2025 a Abril/2026 &nbsp;·&nbsp;
+        <strong>Mês de fechamento:</strong> <span id="heroMonth">Abril/2026</span> &nbsp;·&nbsp;
+        Última atualização: 30/04/2026
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge"><span class="dot"></span> 6 meses de histórico</span>
+      <span class="badge gray">Dashboard de demonstração</span>
+    </div>
+  </div>
+</section>
+
+<!-- ====== KPIs ====== -->
+<section class="section" id="kpis">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Resumo do mês</div>
+      <h2 class="section-title">Indicadores principais</h2>
+      <p class="section-sub">Os números mais importantes para você entender, em 30 segundos, como o negócio está performando neste mês comparado ao mês anterior.</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi accent">
+      <div class="kpi-label">Receita Bruta
+        <span class="kpi-info" data-tip="Total que entrou em vendas no mês, antes de descontar custos. É o ponto de partida da análise.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiReceita">142.380</span></div>
+      <div class="kpi-foot">
+        <span class="delta up" id="kpiReceitaDelta">▲ 8,4%</span>
+        <span>vs mês anterior</span>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">CMV (Custo das Mercadorias)
+        <span class="kpi-info" data-tip="Quanto você pagou aos fornecedores pelas bebidas e bomboniere que foram efetivamente vendidas no mês.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiCMV">98.245</span></div>
+      <div class="kpi-foot">
+        <span class="delta down" id="kpiCMVDelta">▲ 7,1%</span>
+        <span>69,0% da receita</span>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Margem Bruta
+        <span class="kpi-info" data-tip="Receita menos CMV. É o que sobra das vendas para pagar suas despesas fixas e gerar lucro. Quanto maior, melhor.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiBruto">44.135</span></div>
+      <div class="kpi-foot">
+        <span class="delta up" id="kpiBrutoDelta">▲ 11,5%</span>
+        <span><strong style="color:var(--text)">31,0%</strong> margem</span>
+      </div>
+    </div>
+
+    <div class="kpi accent">
+      <div class="kpi-label">Lucro Líquido
+        <span class="kpi-info" data-tip="O que efetivamente sobra no caixa depois de pagar absolutamente tudo: fornecedores, despesas fixas, taxas, impostos e pró-labore.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiLucro">14.560</span></div>
+      <div class="kpi-foot">
+        <span class="delta up" id="kpiLucroDelta">▲ 23,1%</span>
+        <span><strong style="color:var(--text)">10,2%</strong> margem</span>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Ticket Médio
+        <span class="kpi-info" data-tip="Valor médio de cada venda no mês. Subir o ticket médio é uma das alavancas mais rápidas para aumentar o faturamento sem precisar de mais clientes.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiTicket">38,20</span></div>
+      <div class="kpi-foot">
+        <span class="delta up">▲ 4,3%</span>
+        <span>3.728 vendas</span>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Despesas Fixas
+        <span class="kpi-info" data-tip="Custos que existem independente de quanto você vende: aluguel, energia, salários, contador, etc.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiFixas">21.450</span></div>
+      <div class="kpi-foot">
+        <span class="delta flat">— 0,0%</span>
+        <span>15,1% da receita</span>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Saldo em Caixa
+        <span class="kpi-info" data-tip="Dinheiro disponível em conta no fechamento do mês. É o seu colchão para imprevistos e investimentos.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiCaixa">38.920</span></div>
+      <div class="kpi-foot">
+        <span class="delta up">▲ R$ 8.4k</span>
+        <span>~1,8 meses de despesas</span>
+      </div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-label">Fiados em Aberto
+        <span class="kpi-info" data-tip="Total que clientes ainda devem para o depósito. Idealmente, esse valor não deve crescer mês a mês.">i</span>
+      </div>
+      <div class="kpi-value tabular">R$ <span id="kpiFiado">6.840</span></div>
+      <div class="kpi-foot">
+        <span class="delta down">▼ 12,1%</span>
+        <span>14 clientes</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== EVOLUÇÃO + COMPOSIÇÃO ====== -->
+<section class="section">
+  <div class="grid-12">
+    <div class="card card-pad col-8">
+      <div class="section-head" style="margin-bottom:8px">
+        <div>
+          <div class="eyebrow">Evolução temporal</div>
+          <h3 class="section-title" style="font-size:18px">Receita, custos e lucro · últimos 6 meses</h3>
+          <p class="section-sub">Acompanhe a tendência. O ideal é ver receita e lucro crescendo, e a margem se mantendo ou subindo.</p>
+        </div>
+      </div>
+      <div class="chart-wrap tall"><canvas id="chartEvolucao"></canvas></div>
+    </div>
+
+    <div class="card card-pad col-4">
+      <div class="eyebrow">Composição do mês</div>
+      <h3 class="section-title" style="font-size:18px">Para onde foi cada R$ 100</h3>
+      <p class="section-sub" style="margin-bottom:14px">De cada R$ 100 que entrou em vendas, veja como o dinheiro se distribuiu.</p>
+      <div class="chart-wrap"><canvas id="chartCascata"></canvas></div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#0B1E3F"></span>Custo de mercadoria</span>
+        <span><span class="legend-dot" style="background:#5B7AA8"></span>Despesas fixas</span>
+        <span><span class="legend-dot" style="background:#F59E0B"></span>Taxas e impostos</span>
+        <span><span class="legend-dot" style="background:#00BFD8"></span>Lucro líquido</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== DRE ====== -->
+<section class="section" id="dre">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Demonstração de Resultados</div>
+      <h2 class="section-title">DRE Gerencial — abril/2026</h2>
+      <p class="section-sub">A DRE é o "raio-X" do mês. <strong>AV%</strong> mostra quanto cada item representa da sua receita. <strong>AH%</strong> compara com o mês anterior. Linhas em destaque são os totais que importam.</p>
+    </div>
+    <div style="display:flex;gap:6px">
+      <span class="badge gray">Análise Vertical</span>
+      <span class="badge gray">Análise Horizontal</span>
+    </div>
+  </div>
+
+  <div class="card" style="overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="min-width:240px">Conta</th>
+            <th>Abr/2026</th>
+            <th>AV %</th>
+            <th>Mar/2026</th>
+            <th>AV %</th>
+            <th>AH % (variação)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>(+) Receita Bruta de Vendas</td><td class="tabular">R$ 142.380</td><td class="tabular">100,0%</td><td class="tabular">R$ 131.350</td><td class="tabular">100,0%</td><td class="pill-pos tabular">+8,4%</td></tr>
+          <tr><td class="indent">Bebidas — Cervejas</td><td class="tabular">R$ 71.190</td><td class="tabular">50,0%</td><td class="tabular">R$ 64.100</td><td class="tabular">48,8%</td><td class="pill-pos tabular">+11,1%</td></tr>
+          <tr><td class="indent">Bebidas — Refrigerantes</td><td class="tabular">R$ 28.476</td><td class="tabular">20,0%</td><td class="tabular">R$ 26.270</td><td class="tabular">20,0%</td><td class="pill-pos tabular">+8,4%</td></tr>
+          <tr><td class="indent">Bebidas — Destilados</td><td class="tabular">R$ 17.085</td><td class="tabular">12,0%</td><td class="tabular">R$ 16.380</td><td class="tabular">12,5%</td><td class="pill-pos tabular">+4,3%</td></tr>
+          <tr><td class="indent">Bebidas — Águas e Energéticos</td><td class="tabular">R$ 14.238</td><td class="tabular">10,0%</td><td class="tabular">R$ 13.130</td><td class="tabular">10,0%</td><td class="pill-pos tabular">+8,4%</td></tr>
+          <tr><td class="indent">Bomboniere</td><td class="tabular">R$ 11.391</td><td class="tabular">8,0%</td><td class="tabular">R$ 11.470</td><td class="tabular">8,7%</td><td class="pill-neg tabular">-0,7%</td></tr>
+
+          <tr><td>(−) Deduções (taxas de cartão)</td><td class="tabular">- R$ 2.135</td><td class="tabular">1,5%</td><td class="tabular">- R$ 1.970</td><td class="tabular">1,5%</td><td class="pill-neg tabular">+8,4%</td></tr>
+          <tr class="row-section"><td>= Receita Líquida</td><td class="tabular">R$ 140.245</td><td class="tabular">98,5%</td><td class="tabular">R$ 129.380</td><td class="tabular">98,5%</td><td class="tabular">+8,4%</td></tr>
+
+          <tr><td>(−) CMV — Custo das Mercadorias Vendidas</td><td class="tabular">- R$ 98.245</td><td class="tabular">69,0%</td><td class="tabular">- R$ 91.745</td><td class="tabular">69,8%</td><td class="pill-neg tabular">+7,1%</td></tr>
+          <tr class="row-section"><td>= Lucro Bruto</td><td class="tabular">R$ 42.000</td><td class="tabular">29,5%</td><td class="tabular">R$ 37.635</td><td class="tabular">28,7%</td><td class="pill-pos tabular">+11,6%</td></tr>
+
+          <tr><td>(−) Despesas Operacionais Fixas</td><td class="tabular">- R$ 21.450</td><td class="tabular">15,1%</td><td class="tabular">- R$ 21.450</td><td class="tabular">16,3%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Aluguel</td><td class="tabular">- R$ 6.500</td><td class="tabular">4,6%</td><td class="tabular">- R$ 6.500</td><td class="tabular">4,9%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Salário + encargos (1 funcionário)</td><td class="tabular">- R$ 2.800</td><td class="tabular">2,0%</td><td class="tabular">- R$ 2.800</td><td class="tabular">2,1%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Pró-labore do sócio</td><td class="tabular">- R$ 8.000</td><td class="tabular">5,6%</td><td class="tabular">- R$ 8.000</td><td class="tabular">6,1%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Energia elétrica</td><td class="tabular">- R$ 1.850</td><td class="tabular">1,3%</td><td class="tabular">- R$ 1.850</td><td class="tabular">1,4%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Internet e telefone</td><td class="tabular">- R$ 280</td><td class="tabular">0,2%</td><td class="tabular">- R$ 280</td><td class="tabular">0,2%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Contador</td><td class="tabular">- R$ 450</td><td class="tabular">0,3%</td><td class="tabular">- R$ 450</td><td class="tabular">0,3%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Software / sistema (PDV)</td><td class="tabular">- R$ 170</td><td class="tabular">0,1%</td><td class="tabular">- R$ 170</td><td class="tabular">0,1%</td><td class="tabular">0,0%</td></tr>
+          <tr><td class="indent">Manutenção e limpeza</td><td class="tabular">- R$ 1.400</td><td class="tabular">1,0%</td><td class="tabular">- R$ 1.400</td><td class="tabular">1,1%</td><td class="tabular">0,0%</td></tr>
+
+          <tr><td>(−) Despesas Variáveis</td><td class="tabular">- R$ 4.275</td><td class="tabular">3,0%</td><td class="tabular">- R$ 4.090</td><td class="tabular">3,1%</td><td class="pill-neg tabular">+4,5%</td></tr>
+          <tr><td class="indent">Frete e logística</td><td class="tabular">- R$ 2.850</td><td class="tabular">2,0%</td><td class="tabular">- R$ 2.730</td><td class="tabular">2,1%</td><td class="pill-neg tabular">+4,4%</td></tr>
+          <tr><td class="indent">Embalagens / sacolas</td><td class="tabular">- R$ 425</td><td class="tabular">0,3%</td><td class="tabular">- R$ 395</td><td class="tabular">0,3%</td><td class="pill-neg tabular">+7,6%</td></tr>
+          <tr><td class="indent">Marketing local (panfleto, redes sociais)</td><td class="tabular">- R$ 1.000</td><td class="tabular">0,7%</td><td class="tabular">- R$ 965</td><td class="tabular">0,7%</td><td class="pill-neg tabular">+3,6%</td></tr>
+
+          <tr class="row-section"><td>= EBITDA</td><td class="tabular">R$ 16.275</td><td class="tabular">11,4%</td><td class="tabular">R$ 12.095</td><td class="tabular">9,2%</td><td class="pill-pos tabular">+34,6%</td></tr>
+
+          <tr><td>(−) Impostos Simples Nacional</td><td class="tabular">- R$ 1.715</td><td class="tabular">1,2%</td><td class="tabular">- R$ 263</td><td class="tabular">0,2%</td><td class="pill-neg tabular">+552%</td></tr>
+
+          <tr class="row-total"><td>= LUCRO LÍQUIDO DO MÊS</td><td class="tabular pill-pos">R$ 14.560</td><td class="tabular">10,2%</td><td class="tabular pill-pos">R$ 11.832</td><td class="tabular">9,0%</td><td class="pill-pos tabular">+23,1%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:14px">
+    <div class="insight">
+      <div class="insight-icon ok">↑</div>
+      <div>
+        <p class="insight-title">Margem bruta subiu de 28,7% para 29,5%</p>
+        <p class="insight-body">Você está conseguindo mais margem por venda — possivelmente reflexo dos reajustes de preço aplicados em março nas cervejas. <strong>Mantenha o monitoramento</strong> para garantir que o volume de vendas não caia em compensação.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon warn">!</div>
+      <div>
+        <p class="insight-title">Bomboniere caiu 0,7% enquanto bebidas cresceram 8,4%</p>
+        <p class="insight-body">Categoria de menor representatividade (8% da receita) está estagnada. Como o foco é bebidas, isso é aceitável — mas vale avaliar se o estoque parado de bomboniere está prendendo capital de giro à toa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FLUXO DE CAIXA ====== -->
+<section class="section" id="caixa">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Fluxo de Caixa</div>
+      <h2 class="section-title">Realizado e projeção dos próximos 3 meses</h2>
+      <p class="section-sub">Acompanhamento mês a mês das entradas e saídas de dinheiro, com projeção dos próximos meses baseada no histórico e na sazonalidade do setor.</p>
+    </div>
+  </div>
+
+  <div class="grid-12">
+    <div class="card card-pad col-8">
+      <div class="chart-wrap tall"><canvas id="chartFluxo"></canvas></div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#00BFD8"></span>Entradas</span>
+        <span><span class="legend-dot" style="background:#0B1E3F"></span>Saídas</span>
+        <span><span class="legend-dot" style="background:#F59E0B"></span>Saldo acumulado</span>
+        <span style="margin-left:auto;font-style:italic">Tracejado = projeção</span>
+      </div>
+    </div>
+
+    <div class="col-4" style="display:flex;flex-direction:column;gap:14px">
+      <div class="card card-pad">
+        <div class="eyebrow">Capital de giro</div>
+        <h3 style="font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin:6px 0 14px">Saúde financeira do giro</h3>
+        <div class="be-stat">
+          <span class="be-stat-label">Necessidade de Capital de Giro</span>
+          <span class="be-stat-val tabular">R$ 28,4k</span>
+        </div>
+        <div class="be-stat">
+          <span class="be-stat-label">Saldo em caixa atual</span>
+          <span class="be-stat-val tabular" style="color:var(--success)">R$ 38,9k</span>
+        </div>
+        <div class="be-stat">
+          <span class="be-stat-label">Folga de caixa</span>
+          <span class="be-stat-val tabular" style="color:var(--success)">R$ 10,5k</span>
+        </div>
+        <div class="be-stat">
+          <span class="be-stat-label">Cobertura (em meses)</span>
+          <span class="be-stat-val tabular">1,8 meses</span>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin:14px 0 0;line-height:1.5">
+          <strong style="color:var(--success)">Situação saudável.</strong> Recomendado manter cobertura entre 2 e 3 meses. Diferença pode ser direcionada para reinvestimento ou reserva.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== TOP PRODUTOS / PARETO ====== -->
+<section class="section" id="produtos">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Análise por produto</div>
+      <h2 class="section-title">Onde está sua receita e seu lucro</h2>
+      <p class="section-sub">A Curva de Pareto (regra 80/20) mostra que poucos produtos costumam concentrar a maior parte da receita. Identificar esses "produtos-âncora" é fundamental para decisões de estoque, negociação com fornecedor e exposição na loja.</p>
+    </div>
+  </div>
+
+  <div class="grid-12">
+    <div class="card card-pad col-7">
+      <div class="eyebrow">Curva de Pareto · receita por produto</div>
+      <h3 style="font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin:6px 0 18px">Top 10 produtos do mês</h3>
+
+      <div class="pareto-row" style="font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)">
+        <div>Produto</div>
+        <div>% receita</div>
+        <div style="text-align:right">Receita (R$)</div>
+        <div style="text-align:right">Acum.</div>
+      </div>
+
+      <div class="pareto-row">
+        <div class="pareto-label">Heineken Long Neck</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:18.2%"></div></div>
+        <div class="pareto-pct">18,2%</div>
+        <div class="pareto-val">25.913</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Skol Lata 350ml</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:14.8%"></div></div>
+        <div class="pareto-pct">14,8%</div>
+        <div class="pareto-val">21.072</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Brahma Lata 350ml</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:11.4%"></div></div>
+        <div class="pareto-pct">11,4%</div>
+        <div class="pareto-val">16.231</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Coca-Cola 2L</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:9.1%"></div></div>
+        <div class="pareto-pct">9,1%</div>
+        <div class="pareto-val">12.957</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Itaipava Lata 350ml</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:7.5%"></div></div>
+        <div class="pareto-pct">7,5%</div>
+        <div class="pareto-val">10.679</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Cachaça 51 (965ml)</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:6.3%"></div></div>
+        <div class="pareto-pct">6,3%</div>
+        <div class="pareto-val">8.970</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Red Bull 250ml</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:5.2%"></div></div>
+        <div class="pareto-pct">5,2%</div>
+        <div class="pareto-val">7.404</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Guaraná Antarctica 2L</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:4.7%"></div></div>
+        <div class="pareto-pct">4,7%</div>
+        <div class="pareto-val">6.692</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Água Mineral 1,5L</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:3.9%"></div></div>
+        <div class="pareto-pct">3,9%</div>
+        <div class="pareto-val">5.553</div>
+      </div>
+      <div class="pareto-row">
+        <div class="pareto-label">Smirnoff Ice 275ml</div>
+        <div class="pareto-bar"><div class="pareto-fill" style="width:3.3%"></div></div>
+        <div class="pareto-pct">3,3%</div>
+        <div class="pareto-val">4.698</div>
+      </div>
+
+      <div style="margin-top:18px;padding:14px;background:var(--cyan-soft);border-radius:10px;font-size:13px;line-height:1.5">
+        <strong style="color:var(--navy)">Leitura LP Finance:</strong> 10 produtos respondem por <strong>84,4%</strong> da sua receita. Garantir que esses itens nunca fiquem em ruptura é prioridade absoluta — uma falta de Heineken sozinha custa cerca de <strong>R$ 850/dia</strong> em vendas perdidas.
+      </div>
+    </div>
+
+    <div class="card card-pad col-5">
+      <div class="eyebrow">Margem por categoria</div>
+      <h3 style="font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin:6px 0 18px">Onde você ganha mais por venda</h3>
+      <div class="chart-wrap tall"><canvas id="chartMargem"></canvas></div>
+      <div style="margin-top:14px;padding:12px;background:#FAFBFD;border-radius:10px;font-size:12px;color:var(--muted);line-height:1.55">
+        Destilados têm a maior margem (<strong style="color:var(--text)">38%</strong>), mas baixo giro. Cervejas têm margem menor (<strong style="color:var(--text)">28%</strong>), mas é o que paga as contas pelo volume. <strong style="color:var(--text)">Estratégia ideal:</strong> manter cervejas como motor de fluxo e usar destilados para "puxar" o ticket médio.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== BREAK-EVEN ====== -->
+<section class="section" id="breakeven">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Ponto de Equilíbrio</div>
+      <h2 class="section-title">Quanto você precisa vender para não dar prejuízo</h2>
+      <p class="section-sub">O Break-even é o faturamento mínimo do mês para cobrir todas as suas despesas. Tudo o que vender acima disso, é lucro.</p>
+    </div>
+  </div>
+
+  <div class="grid-12">
+    <div class="card card-pad-lg col-5 be-card">
+      <div>
+        <div class="eyebrow">Cálculo do mês</div>
+        <h3 style="font-family:'Fraunces',serif;font-weight:500;font-size:20px;margin:6px 0 0">Break-even abril/2026</h3>
+      </div>
+      <div class="be-stat">
+        <span class="be-stat-label">Despesas Fixas + Pró-labore</span>
+        <span class="be-stat-val tabular">R$ 21.450</span>
+      </div>
+      <div class="be-stat">
+        <span class="be-stat-label">Margem de Contribuição (média)</span>
+        <span class="be-stat-val tabular">31,0%</span>
+      </div>
+      <div class="be-stat">
+        <span class="be-stat-label">Faturamento mínimo (Break-even)</span>
+        <span class="be-stat-val tabular" style="color:var(--cyan)">R$ 69.193</span>
+      </div>
+      <div class="be-stat">
+        <span class="be-stat-label">Faturamento realizado</span>
+        <span class="be-stat-val tabular" style="color:var(--success)">R$ 142.380</span>
+      </div>
+      <div style="padding:14px;background:var(--success-soft);border-radius:10px;margin-top:6px">
+        <div style="font-size:11px;font-weight:700;color:#065F46;letter-spacing:.08em;text-transform:uppercase">Margem de Segurança</div>
+        <div style="font-family:'Fraunces',serif;font-size:30px;font-weight:500;color:#065F46;margin-top:4px">+105,8%</div>
+        <div style="font-size:12px;color:#065F46;line-height:1.5;margin-top:4px">Você está faturando mais que o dobro do necessário para empatar. <strong>Excelente posição.</strong></div>
+      </div>
+    </div>
+
+    <div class="card card-pad-lg col-7">
+      <div class="eyebrow">Visualização</div>
+      <h3 style="font-family:'Fraunces',serif;font-weight:500;font-size:20px;margin:6px 0 18px">Faturamento mensal vs. break-even</h3>
+      <div class="chart-wrap tall"><canvas id="chartBreakeven"></canvas></div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#0B1E3F"></span>Faturamento realizado</span>
+        <span><span class="legend-dot" style="background:#F59E0B"></span>Linha de break-even</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== BUDGET VS REALIZADO ====== -->
+<section class="section" id="budget">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Orçamento vs Realizado</div>
+      <h2 class="section-title">Aderência ao planejado</h2>
+      <p class="section-sub">No início do ano você definiu metas. Aqui acompanhamos o que foi <strong>orçado</strong> versus o que <strong>aconteceu de fato</strong>. Variações acima de 10% merecem atenção.</p>
+    </div>
+  </div>
+
+  <div class="card" style="overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Conta</th>
+            <th>Orçado abril</th>
+            <th>Realizado abril</th>
+            <th>Variação R$</th>
+            <th>Variação %</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Receita Bruta</strong></td>
+            <td class="tabular">R$ 135.000</td>
+            <td class="tabular">R$ 142.380</td>
+            <td class="tabular pill-pos">+R$ 7.380</td>
+            <td class="tabular pill-pos">+5,5%</td>
+            <td><span class="badge green">Acima</span></td>
+          </tr>
+          <tr>
+            <td>CMV</td>
+            <td class="tabular">R$ 92.475</td>
+            <td class="tabular">R$ 98.245</td>
+            <td class="tabular pill-neg">+R$ 5.770</td>
+            <td class="tabular pill-neg">+6,2%</td>
+            <td><span class="badge warn">Atenção</span></td>
+          </tr>
+          <tr>
+            <td>Margem Bruta</td>
+            <td class="tabular">R$ 42.525</td>
+            <td class="tabular">R$ 44.135</td>
+            <td class="tabular pill-pos">+R$ 1.610</td>
+            <td class="tabular pill-pos">+3,8%</td>
+            <td><span class="badge green">Acima</span></td>
+          </tr>
+          <tr>
+            <td>Despesas Fixas</td>
+            <td class="tabular">R$ 21.450</td>
+            <td class="tabular">R$ 21.450</td>
+            <td class="tabular">R$ 0</td>
+            <td class="tabular">0,0%</td>
+            <td><span class="badge gray">Em linha</span></td>
+          </tr>
+          <tr>
+            <td>Despesas Variáveis</td>
+            <td class="tabular">R$ 4.050</td>
+            <td class="tabular">R$ 4.275</td>
+            <td class="tabular pill-neg">+R$ 225</td>
+            <td class="tabular pill-neg">+5,6%</td>
+            <td><span class="badge gray">Em linha</span></td>
+          </tr>
+          <tr>
+            <td>Impostos</td>
+            <td class="tabular">R$ 1.620</td>
+            <td class="tabular">R$ 1.715</td>
+            <td class="tabular pill-neg">+R$ 95</td>
+            <td class="tabular pill-neg">+5,9%</td>
+            <td><span class="badge gray">Em linha</span></td>
+          </tr>
+          <tr class="row-total">
+            <td>LUCRO LÍQUIDO</td>
+            <td class="tabular">R$ 13.755</td>
+            <td class="tabular pill-pos">R$ 14.560</td>
+            <td class="tabular pill-pos">+R$ 805</td>
+            <td class="tabular pill-pos">+5,9%</td>
+            <td><span class="badge green">Meta batida</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:14px">
+    <div class="insight">
+      <div class="insight-icon ok">✓</div>
+      <div>
+        <p class="insight-title">Receita 5,5% acima da meta</p>
+        <p class="insight-body">Forte performance de cervejas, especialmente Heineken (+11% vs meta).</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon warn">!</div>
+      <div>
+        <p class="insight-title">CMV cresceu mais que receita</p>
+        <p class="insight-body">CMV 6,2% acima do orçado vs receita 5,5%. Vale revisar preços de fornecedor.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon ok">★</div>
+      <div>
+        <p class="insight-title">Lucro acima da meta</p>
+        <p class="insight-body">R$ 805 acima do planejado. Acumulado YTD: <strong>+R$ 4.130</strong> vs orçamento.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PRÓ-LABORE & DISTRIBUIÇÃO ====== -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Remuneração do sócio</div>
+      <h2 class="section-title">Pró-labore e distribuição de lucros</h2>
+      <p class="section-sub">A LP Finance separa o que é <strong>pró-labore</strong> (salário fixo do sócio, mensal) do que é <strong>distribuição de lucros</strong> (sobra do trimestre, dividida entre reinvestimento e retirada). Isso traz previsibilidade para a vida pessoal e disciplina para o negócio.</p>
+    </div>
+  </div>
+
+  <div class="grid-12">
+    <div class="card card-pad col-6">
+      <div class="eyebrow">Configuração atual</div>
+      <h3 style="font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin:6px 0 16px">Política de remuneração</h3>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div style="padding:14px;border:1px solid var(--border);border-radius:10px">
+          <div class="eyebrow" style="color:var(--muted)">Pró-labore mensal</div>
+          <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:500;margin-top:4px">R$ 8.000</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">5,6% da receita média</div>
+        </div>
+        <div style="padding:14px;border:1px solid var(--border);border-radius:10px">
+          <div class="eyebrow" style="color:var(--muted)">Distribuição trimestral</div>
+          <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:500;margin-top:4px">60% / 40%</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Sócio / reinvestimento</div>
+        </div>
+      </div>
+
+      <div style="padding:16px;background:var(--cyan-soft);border-radius:10px">
+        <div style="font-size:12px;color:#005C6B;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Próxima distribuição (junho/2026)</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <span style="font-size:13px">Lucro acumulado abr-jun (estimado)</span>
+          <span class="tabular" style="font-weight:700">R$ 47.200</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <span style="font-size:13px">→ Para o sócio (60%)</span>
+          <span class="tabular" style="font-weight:700;color:var(--navy)">R$ 28.320</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:13px">→ Para reinvestimento (40%)</span>
+          <span class="tabular" style="font-weight:700;color:var(--navy)">R$ 18.880</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-pad col-6">
+      <div class="eyebrow">Sugestão LP Finance</div>
+      <h3 style="font-family:'Fraunces',serif;font-weight:500;font-size:18px;margin:6px 0 12px">Roadmap dos próximos 12 meses</h3>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:2px">Reserva de emergência (até set/26)</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.5">Direcionar 100% do reinvestimento até atingir 3 meses de despesa fixa em caixa (R$ 64,3k). Hoje em 1,8 meses.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--cyan);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:2px">Reajuste de pró-labore (out/26)</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.5">Após reserva formada, avaliar pró-labore para R$ 9-10k, alinhado ao crescimento da receita projetada.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--cyan);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">3</div>
+          <div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:2px">Investimento patrimonial (nov/26)</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.5">Excedentes de distribuição podem ser direcionados para a carteira pessoal de investimentos (Premium LP Finance).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== INSIGHTS ====== -->
+<section class="section" id="insights">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Diagnóstico do mês</div>
+      <h2 class="section-title">Insights estratégicos e ações sugeridas</h2>
+      <p class="section-sub">Aqui é onde os números viram decisão. Cada insight vem com uma ação prática.</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="insight">
+      <div class="insight-icon ok">↑</div>
+      <div>
+        <p class="insight-title">Você teve o melhor mês do semestre</p>
+        <p class="insight-body">Lucro líquido de R$ 14.560 representa <strong>+23,1%</strong> vs março e <strong>+41,8%</strong> vs novembro. A combinação de receita crescendo e despesas fixas estáveis está gerando alavancagem operacional saudável. <br><strong>Ação:</strong> manter disciplina de despesa fixa.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon warn">!</div>
+      <div>
+        <p class="insight-title">CMV está pressionando a margem</p>
+        <p class="insight-body">CMV foi <strong>6,2% acima do orçado</strong>. Provavelmente reflexo de aumento de fornecedor não repassado totalmente ao preço final. <br><strong>Ação:</strong> revisar tabela de preços das 5 SKUs com maior peso (Heineken, Skol, Brahma, Coca 2L, Itaipava) e simular impacto de +3% no preço.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon info">i</div>
+      <div>
+        <p class="insight-title">Concentração em poucos fornecedores</p>
+        <p class="insight-body">Cervejas representam <strong>50% da receita</strong> e dependem majoritariamente de 2 distribuidores. Risco de ruptura ou reajuste fora do controle. <br><strong>Ação:</strong> mapear fornecedor alternativo para os 3 SKUs principais até junho/26.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon ok">$</div>
+      <div>
+        <p class="insight-title">Capital de giro saudável, mas com folga limitada</p>
+        <p class="insight-body">Cobertura de 1,8 meses está abaixo do recomendado (2-3 meses). <br><strong>Ação:</strong> direcionar 100% da próxima distribuição para reserva, postergando retirada extra do sócio até atingir R$ 64k em caixa.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon alert">×</div>
+      <div>
+        <p class="insight-title">Bomboniere com giro baixo prendendo capital</p>
+        <p class="insight-body">Categoria representa 8% da receita mas ocupa estimados 14% do estoque. Giro de 2,3x ao ano (vs 8,5x das cervejas). <br><strong>Ação:</strong> reduzir compras de bomboniere em 30% por 2 meses e medir impacto.</p>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon info">→</div>
+      <div>
+        <p class="insight-title">Projeção maio/2026: R$ 148-153k de receita</p>
+        <p class="insight-body">Maio costuma ser sazonalmente positivo (Dia das Mães, feriados). Lucro projetado entre <strong>R$ 15-17k</strong>. <br><strong>Ação:</strong> reforçar estoque das 10 SKUs do top Pareto até 05/maio.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PLANOS ====== -->
+<section class="plans" id="planos">
+  <div class="plans-inner">
+    <div class="plans-head">
+      <div class="plans-eyebrow">Próximo passo</div>
+      <h2>Como vamos <em>trabalhar juntos</em></h2>
+      <p class="plans-sub">Três planos pensados para o seu momento.</p>
+    </div>
+
+    <div class="plans-grid">
+      <!-- BÁSICO -->
+      <div class="plan">
+        <div>
+          <div class="plan-name">Básico</div>
+          <div class="plan-desc">Para quem quer organizar a casa e tomar decisões por conta própria com base em dados.</div>
+        </div>
+        <div class="plan-price">
+          <span class="plan-price-amount">R$ 397</span>
+          <span class="plan-price-period">/mês</span>
+        </div>
+        <ul class="plan-feats">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Planilha de preenchimento diário</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Dashboard interativo mensal completo</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> KPIs, DRE, Fluxo de Caixa, Pareto, Break-Even</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Acesso via link em qualquer dispositivo</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Atendimento por WhatsApp para dúvidas</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Política de pró-labore e distribuição de dividendos</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Projeções e cenários</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Insights e recomendações personalizadas</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Análise perfil investidor</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Montagem da carteira de investimentos</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Sugestões dos aportes mensais</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Relatório de performance</li>
+        </ul>
+        <a class="plan-cta dark" href="https://wa.me/5521979093094?text=Ol%C3%A1%20Lucas%2C%20quero%20saber%20mais%20sobre%20o%20plano%20B%C3%A1sico%20da%20LP%20Finance" target="_blank">Quero o Básico</a>
+      </div>
+
+      <!-- ESSENCIAL (FEATURED) -->
+      <div class="plan featured">
+        <div class="plan-tag">Recomendado</div>
+        <div>
+          <div class="plan-name">Essencial</div>
+          <div class="plan-desc">Dashboard + Consultoria ativa. Analisamos seus números, explicamos as variações e orientamos nas suas tomadas de decisão.</div>
+        </div>
+        <div class="plan-price">
+          <span class="plan-price-amount">R$ 597</span>
+          <span class="plan-price-period">/mês</span>
+        </div>
+        <ul class="plan-feats">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Planilha de preenchimento diário</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Dashboard interativo mensal completo</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> KPIs, DRE, Fluxo de Caixa, Pareto, Break-Even</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Acesso via link em qualquer dispositivo</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Atendimento por WhatsApp para dúvidas</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Política de pró-labore e distribuição de dividendos</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Projeções e cenários</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00BFD8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Insights e recomendações personalizadas</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5778" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Análise perfil investidor</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5778" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Montagem da carteira de investimentos</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5778" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Sugestões dos aportes mensais</li>
+          <li class="off"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3F5778" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg> Relatório de performance</li>
+        </ul>
+        <a class="plan-cta primary" href="https://wa.me/5521979093094?text=Ol%C3%A1%20Lucas%2C%20quero%20fechar%20o%20plano%20Essencial%20da%20LP%20Finance" target="_blank">
+          Quero o Essencial
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- PREMIUM -->
+      <div class="plan">
+        <div>
+          <div class="plan-name">Premium</div>
+          <div class="plan-desc">Controladoria Empresarial + Consultoria de Investimentos. O pacote completo de toda a estrutura, com desconto. Saúde financeira do negócio e do empresário, juntas.</div>
+        </div>
+        <div class="plan-price">
+          <span class="plan-price-amount">R$ 797</span>
+          <span class="plan-price-period">/mês</span>
+        </div>
+        <ul class="plan-feats">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Planilha de preenchimento diário</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Dashboard interativo mensal completo</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> KPIs, DRE, Fluxo de Caixa, Pareto, Break-Even</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Acesso via link em qualquer dispositivo</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Atendimento por WhatsApp para dúvidas</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Política de pró-labore e distribuição de dividendos</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Projeções e cenários</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Insights e recomendações personalizadas</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Análise perfil investidor</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Montagem da carteira de investimentos</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Sugestões dos aportes mensais</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Relatório de performance</li>
+        </ul>
+        <a class="plan-cta dark" href="https://wa.me/5521979093094?text=Ol%C3%A1%20Lucas%2C%20quero%20conhecer%20o%20plano%20Premium%20da%20LP%20Finance" target="_blank">Quero o Premium</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <strong style="color:var(--navy)">LP Finance</strong> · Planejamento Financeiro Inteligente · Consultoria empresarial e de investimentos
+</footer>
+
+<script>
+/* ============== DADOS ============== */
+const meses = ['Nov/25','Dez/25','Jan/26','Fev/26','Mar/26','Abr/26'];
+const receita = [108200, 134800, 92500, 105300, 131350, 142380];
+const cmv     = [76800,  93600, 67800, 76200,  91745,  98245];
+const fixas   = [21450,  21450, 21450, 21450,  21450,  21450];
+const variaveis = [3450, 4200, 2950, 3380, 4090, 4275];
+const impostos = [1300, 1620, 1110, 1265, 263, 1715]; // mar teve crédito tributário
+const lucro   = [
+  receita[0]-cmv[0]-fixas[0]-variaveis[0]-impostos[0],
+  receita[1]-cmv[1]-fixas[1]-variaveis[1]-impostos[1],
+  receita[2]-cmv[2]-fixas[2]-variaveis[2]-impostos[2],
+  receita[3]-cmv[3]-fixas[3]-variaveis[3]-impostos[3],
+  receita[4]-cmv[4]-fixas[4]-variaveis[4]-impostos[4],
+  receita[5]-cmv[5]-fixas[5]-variaveis[5]-impostos[5],
+];
+
+/* ============== MONTH PICKER ============== */
+const mp = document.getElementById('monthPicker');
+meses.forEach((m,i)=>{
+  const b=document.createElement('button');
+  b.className='month-btn'+(i===meses.length-1?' active':'');
+  b.textContent=m;
+  b.onclick=()=>{
+    document.querySelectorAll('.month-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('heroMonth').textContent = m.replace('/','/20');
+  };
+  mp.appendChild(b);
+});
+
+/* ============== CHART DEFAULTS ============== */
+Chart.defaults.font.family = "'Manrope', -apple-system, system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#64748B';
+Chart.defaults.plugins.legend.display = false;
+
+const fmtBRL = v => 'R$ ' + (v/1000).toFixed(1).replace('.',',') + 'k';
+const fmtBRLfull = v => 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+/* ============== EVOLUÇÃO ============== */
+new Chart(document.getElementById('chartEvolucao'),{
+  type:'bar',
+  data:{
+    labels:meses,
+    datasets:[
+      {
+        label:'Receita',
+        data:receita,
+        backgroundColor:'rgba(11,30,63,0.85)',
+        borderRadius:6,
+        order:2,
+      },
+      {
+        label:'Lucro',
+        data:lucro,
+        backgroundColor:'#00BFD8',
+        borderRadius:6,
+        order:2,
+      },
+      {
+        label:'Margem %',
+        type:'line',
+        data:lucro.map((l,i)=>+(l/receita[i]*100).toFixed(1)),
+        yAxisID:'y2',
+        borderColor:'#F59E0B',
+        backgroundColor:'#F59E0B',
+        borderWidth:2.5,
+        tension:0.35,
+        pointRadius:4,
+        pointBackgroundColor:'#fff',
+        pointBorderWidth:2,
+        order:1,
+      }
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'rectRounded',padding:14,font:{size:12}}},
+      tooltip:{
+        backgroundColor:'#0B1E3F',padding:12,cornerRadius:8,
+        callbacks:{label:(c)=>{
+          if(c.dataset.label==='Margem %') return ' ' + c.dataset.label+': '+c.parsed.y.toFixed(1)+'%';
+          return ' ' + c.dataset.label+': '+fmtBRLfull(c.parsed.y);
+        }}
+      }
+    },
+    scales:{
+      y:{ticks:{callback:v=>fmtBRL(v)},grid:{color:'#EEF2F7'}},
+      y2:{position:'right',ticks:{callback:v=>v+'%'},grid:{display:false},min:0,max:20},
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+/* ============== CASCATA / DOUGHNUT ============== */
+const ult = receita.length-1;
+new Chart(document.getElementById('chartCascata'),{
+  type:'doughnut',
+  data:{
+    labels:['Custo de mercadoria','Despesas fixas','Taxas e impostos','Lucro líquido'],
+    datasets:[{
+      data:[cmv[ult], fixas[ult]+variaveis[ult], impostos[ult]+2135 /*incl taxas cartão*/, lucro[ult]],
+      backgroundColor:['#0B1E3F','#5B7AA8','#F59E0B','#00BFD8'],
+      borderWidth:0,
+      spacing:2,
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    cutout:'68%',
+    plugins:{
+      tooltip:{
+        backgroundColor:'#0B1E3F',padding:12,cornerRadius:8,
+        callbacks:{label:c=> ' ' + c.label+': '+fmtBRLfull(c.parsed)+' ('+(c.parsed/receita[ult]*100).toFixed(1)+'%)'}
+      }
+    }
+  },
+  plugins:[{
+    id:'centerText',
+    beforeDraw(chart){
+      const {ctx,chartArea:{left,right,top,bottom}}=chart;
+      ctx.save();
+      const x=(left+right)/2, y=(top+bottom)/2;
+      ctx.textAlign='center';
+      ctx.font="600 11px 'Manrope'";ctx.fillStyle='#64748B';ctx.fillText('LUCRO LÍQUIDO',x,y-12);
+      ctx.font="500 24px 'Fraunces'";ctx.fillStyle='#0B1E3F';ctx.fillText(fmtBRLfull(lucro[ult]),x,y+12);
+      ctx.font="600 11px 'Manrope'";ctx.fillStyle='#00BFD8';ctx.fillText((lucro[ult]/receita[ult]*100).toFixed(1)+'% margem',x,y+30);
+      ctx.restore();
+    }
+  }]
+});
+
+/* ============== FLUXO DE CAIXA ============== */
+const labelsFluxo = [...meses, 'Mai/26','Jun/26','Jul/26'];
+const entradas = [...receita, 150500, 158000, 152000];
+const saidas = [
+  cmv[0]+fixas[0]+variaveis[0]+impostos[0],
+  cmv[1]+fixas[1]+variaveis[1]+impostos[1],
+  cmv[2]+fixas[2]+variaveis[2]+impostos[2],
+  cmv[3]+fixas[3]+variaveis[3]+impostos[3],
+  cmv[4]+fixas[4]+variaveis[4]+impostos[4],
+  cmv[5]+fixas[5]+variaveis[5]+impostos[5],
+  133900, 140600, 134800
+];
+let acum = 22000;
+const saldoAcum = [];
+for(let i=0;i<entradas.length;i++){acum += (entradas[i]-saidas[i]); saldoAcum.push(acum);}
+
+new Chart(document.getElementById('chartFluxo'),{
+  type:'bar',
+  data:{
+    labels:labelsFluxo,
+    datasets:[
+      {
+        label:'Entradas',type:'bar',
+        data:entradas,
+        backgroundColor:(c)=>c.dataIndex>=6?'rgba(0,191,216,0.45)':'#00BFD8',
+        borderRadius:6,order:2,
+      },
+      {
+        label:'Saídas',type:'bar',
+        data:saidas.map(v=>-v),
+        backgroundColor:(c)=>c.dataIndex>=6?'rgba(11,30,63,0.45)':'#0B1E3F',
+        borderRadius:6,order:2,
+      },
+      {
+        label:'Saldo acumulado',type:'line',
+        data:saldoAcum,
+        yAxisID:'y2',
+        borderColor:'#F59E0B',backgroundColor:'#F59E0B',
+        borderWidth:2.5,tension:0.35,
+        pointRadius:(c)=>c.dataIndex>=6?3:5,
+        pointBackgroundColor:'#fff',pointBorderWidth:2,
+        borderDash:(c)=>c.p1DataIndex>=6?[6,6]:[],
+        segment:{borderDash:c=>c.p1DataIndex>=6?[6,6]:[]},
+        order:1,
+      }
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'#0B1E3F',padding:12,cornerRadius:8,
+        callbacks:{label:c=> ' ' + c.dataset.label+': '+fmtBRLfull(Math.abs(c.parsed.y))}
+      }
+    },
+    scales:{
+      y:{ticks:{callback:v=>fmtBRL(Math.abs(v))},grid:{color:'#EEF2F7'}},
+      y2:{position:'right',ticks:{callback:v=>fmtBRL(v)},grid:{display:false}},
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+/* ============== MARGEM POR CATEGORIA ============== */
+new Chart(document.getElementById('chartMargem'),{
+  type:'bar',
+  data:{
+    labels:['Destilados','Bomboniere','Energéticos','Águas','Refrigerantes','Cervejas'],
+    datasets:[{
+      label:'Margem %',
+      data:[38, 35, 33, 32, 29, 28],
+      backgroundColor:['#00BFD8','#33D2E6','#5B7AA8','#5B7AA8','#0B1E3F','#0B1E3F'],
+      borderRadius:6,
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    indexAxis:'y',
+    plugins:{
+      tooltip:{
+        backgroundColor:'#0B1E3F',padding:10,cornerRadius:8,
+        callbacks:{label:c=> ' Margem: '+c.parsed.x+'%'}
+      },
+      datalabels:false
+    },
+    scales:{
+      x:{ticks:{callback:v=>v+'%'},grid:{color:'#EEF2F7'},max:45},
+      y:{grid:{display:false}}
+    }
+  }
+});
+
+/* ============== BREAK-EVEN ============== */
+new Chart(document.getElementById('chartBreakeven'),{
+  type:'bar',
+  data:{
+    labels:meses,
+    datasets:[
+      {
+        label:'Faturamento',
+        data:receita,
+        backgroundColor:'rgba(11,30,63,0.85)',
+        borderRadius:8,
+      },
+      {
+        label:'Break-even',
+        type:'line',
+        data:[69193,69193,69193,69193,69193,69193],
+        borderColor:'#F59E0B',
+        borderWidth:2.5,
+        borderDash:[8,4],
+        pointRadius:0,
+        fill:false,
+      }
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      tooltip:{
+        backgroundColor:'#0B1E3F',padding:12,cornerRadius:8,
+        callbacks:{label:c=> ' ' + c.dataset.label+': '+fmtBRLfull(c.parsed.y)}
+      }
+    },
+    scales:{
+      y:{ticks:{callback:v=>fmtBRL(v)},grid:{color:'#EEF2F7'},beginAtZero:true},
+      x:{grid:{display:false}}
+    }
+  }
+});
+
+</script>
+</body>
+</html>
